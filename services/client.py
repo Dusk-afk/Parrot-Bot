@@ -3,7 +3,9 @@ from discord.ext import commands
 from discord.voice_client import VoiceClient
 from discord.member import VoiceState, Member
 from discord.channel import VoiceChannel
-import asyncio
+from services.FFmpegPCMAudioGTTS import FFmpegPCMAudioGTTS
+from io import BytesIO
+from gtts import gTTS
 
 class Client(commands.Bot):
 
@@ -17,10 +19,10 @@ class Client(commands.Bot):
             for i in range(len(self.voice_clients)):
                 vc:VoiceClient = self.voice_clients[i]
             
-                if vc.channel == after.channel:
+                if vc.channel == after.channel and before.channel != after.channel:
                     await self._play_connect_sound(vc, member)
                 
-                if before.channel == vc.channel:
+                if before.channel == vc.channel and before.channel != after.channel:
                     await self._play_disconnect_sound(vc, member)
         
         except Exception as e:
@@ -29,9 +31,27 @@ class Client(commands.Bot):
     async def _play_connect_sound(self, channel: VoiceClient, member: Member):
         if channel.is_playing():
             channel.stop()
-        channel.play(FFmpegPCMAudio(executable=self.FFMPEG_PATH, source='sounds/connected.mp3'))
+        
+        sound_fp = BytesIO()
+        tts = gTTS(
+            text= f'{member.display_name} आ चुके है ',
+            lang='hi',
+            slow=False
+        )
+        tts.write_to_fp(sound_fp)
+        sound_fp.seek(0)
+        channel.play(FFmpegPCMAudioGTTS(sound_fp.read(), executable=self.FFMPEG_PATH, pipe=True))
 
     async def _play_disconnect_sound(self, channel: VoiceClient, member: Member):
         if channel.is_playing():
             channel.stop()
-        channel.play(FFmpegPCMAudio(executable=self.FFMPEG_PATH, source='sounds/disconnected.mp3'))
+        
+        sound_fp = BytesIO()
+        tts = gTTS(
+            text= f'{member.display_name} जा चुके है ',
+            lang='hi',
+            slow=False
+        )
+        tts.write_to_fp(sound_fp)
+        sound_fp.seek(0)
+        channel.play(FFmpegPCMAudioGTTS(sound_fp.read(), executable=self.FFMPEG_PATH, pipe=True))

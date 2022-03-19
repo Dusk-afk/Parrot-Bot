@@ -1,5 +1,5 @@
-from clients.client import Client
-from cogs.parrot_cog import ParrotCog
+from services.client import Client
+from services.parrot_cog import ParrotCog
 
 TOKEN = "OTU0MzIzODA0NDUxMTMxNDQy.YjRdTQ.ulgvK66fa1xFjF_5Tt390Ceptaw"
 
