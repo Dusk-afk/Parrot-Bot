@@ -1,0 +1,1 @@
+Hi there! I am Parrot. I was created by Dusk#2577 & arsh#5480 on 18/03/2022. I am here to tell you about your voice channel activities. Currently I only speak English and Hindi but soon I will learn more languages
