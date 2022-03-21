@@ -175,7 +175,9 @@ class ParrotCog(Cog):
             script = random.choice(intros_hi)
         
         elif lang == "en":
-            script = "Hi, I am here at your service"
+            intros_en = ["hey, there","i, am just like jarvis. but only if he was from wallmart","dude this server makes me feel alive","do you know? siri and i are both cousins"]
+            script = random.choice(intros_en)
+            
         
         sound_fp = BytesIO()
         tts = gTTS(
