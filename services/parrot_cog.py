@@ -144,7 +144,7 @@ class ParrotCog(Cog):
         view.add_item(say_btn)
 
         final_msg = "Say disabled" if not currently_say_disabled else "Say enabled"
-        await interaction.response.edit_message(content= final_msg , view=view, ephemeral = True)
+        await interaction.response.edit_message(content= final_msg , view=view)
     
     def isSayDisabled(self, guild_id):
         with open("data.json", "r") as f:
