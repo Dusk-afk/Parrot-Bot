@@ -1,5 +1,3 @@
-import asyncio
-import json
 import random
 from gtts import gTTS
 from io import BytesIO
@@ -12,12 +10,14 @@ from discord.commands.context import ApplicationContext
 from discord.ui import Button, View, select
 from discord.ui.select import Select
 from discord.commands import slash_command
-from services.FFmpegPCMAudioGTTS import FFmpegPCMAudioGTTS 
+from services.FFmpegPCMAudioGTTS import FFmpegPCMAudioGTTS
+from services.audio_service import AudioService
+from services.db import Db 
 
-guild_ids = [597112845221494784, 955048661132406845, 947697072675622962]
+guild_ids = [1063893968418504764]
 
 class LanguageSelectMenu(View):
-    @select(placeholder="Select the language", options=[
+    @select(placeholder=f"Select the language", options=[
         SelectOption(label="Hindi", emoji="🇮🇳"),
         SelectOption(label="English", emoji="🇺🇸"),
     ])
@@ -32,16 +32,7 @@ class LanguageSelectMenu(View):
         await interaction.response.edit_message(content= f"Language Changed to {selected} ✅", view=None)
     
     def changeLanguage(self, lang: str, guild_id: int):
-        data = {}
-        with open("data.json", "r") as f:
-            data = json.load(f)
-            if str(guild_id) not in data.keys():
-                data[str(guild_id)] = {"lang": lang}
-            else:
-                data[str(guild_id)]["lang"] = lang
-        
-        with open("data.json", "w") as f:
-            json.dump(data, f, indent=4)
+        Db().of(guild_id).set_language(lang)
 
 class ParrotCog(Cog):
     FFMPEG_PATH = "ffmpeg.exe"
@@ -49,7 +40,7 @@ class ParrotCog(Cog):
     def __init__(self, bot: Bot):
         self.bot = bot
 
-    @slash_command(name="start", description="Connects Parrot to your current voice channel")
+    @slash_command(name="start", description="Connects Parrot to your current voice channel", guild_ids=guild_ids)
     async def start(self, ctx: ApplicationContext):
         voice = ctx.author.voice
 
@@ -116,13 +107,7 @@ class ParrotCog(Cog):
 
         currently_say_disabled = self.isSayDisabled(interaction.guild_id)
 
-        with open("data.json", "r") as f:
-            data = json.load(f)
-            data[str(interaction.guild_id)]["say_disabled"] = not currently_say_disabled
-        
-        with open("data.json", "w") as f:
-            json.dump(data, f, indent = 4)
-
+        Db().of(interaction.guild_id).set_say_enabled(not currently_say_disabled)
 
         lang_btn = Button(
             label="Language",
@@ -147,12 +132,7 @@ class ParrotCog(Cog):
         await interaction.response.edit_message(content= final_msg , view=view)
     
     def isSayDisabled(self, guild_id):
-        with open("data.json", "r") as f:
-            data = json.load(f)
-            try:
-                return data[str(guild_id)]["say_disabled"]
-            except Exception as e:
-                return True
+        return not Db().of(guild_id).is_say_enabled()
     
     @slash_command(name="hello", description="Test if the parrot can speak")
     async def hello(self, ctx: ApplicationContext):
@@ -177,18 +157,8 @@ class ParrotCog(Cog):
         elif lang == "en":
             intros_en = ["hey, there","i, am just like jarvis. but only if he was from wallmart","dude this server makes me feel alive","do you know? siri and i are both cousins"]
             script = random.choice(intros_en)
-            
-        
-        sound_fp = BytesIO()
-        tts = gTTS(
-            text= script,
-            lang= lang,
-            tld="us",
-            slow=False
-        )
-        tts.write_to_fp(sound_fp)
-        sound_fp.seek(0)
-        vc.play(FFmpegPCMAudioGTTS(sound_fp.read(), executable=self.FFMPEG_PATH, pipe=True))
+
+        AudioService.play_tts(vc, script, lang)
 
     @slash_command(name="say", description="Parrot will repeat your message")
     async def say(self, ctx: ApplicationContext, text: str):
@@ -223,25 +193,10 @@ class ParrotCog(Cog):
         await ctx.respond("I am not connected to your voice channel", ephemeral = True)
     
     def tts(self, text: str, vc: VoiceClient):
-        sound_fp = BytesIO()
-        tts = gTTS(
-            text= text,
-            lang= self.getLanguage(vc.guild.id),
-            tld="us",
-            slow=False
-        )
-        tts.write_to_fp(sound_fp)
-        sound_fp.seek(0)
-        vc.play(FFmpegPCMAudioGTTS(sound_fp.read(), executable=self.FFMPEG_PATH, pipe=True))
+        AudioService.play_tts(vc, text, self.getLanguage(vc.guild.id))
         
     def getLanguage(self, guild_id):
-        with open("data.json", "r") as f:
-            data = json.load(f)
-            lang = None
-            try: lang = data[str(guild_id)]["lang"]
-            except: pass
-
-            return "hi" if lang is None else lang
+        return Db().of(guild_id).get_language()
     
     @slash_command(name="help", description="Shows a list of commands that you can use for Parrot")
     async def help(self, ctx: ApplicationContext):

@@ -1,8 +1,10 @@
 from services.client import Client
+from services.db import Db
 from services.parrot_cog import ParrotCog
 
-TOKEN = "OTU0MzIzODA0NDUxMTMxNDQy.YjRdTQ.AeaUfCYs7gj4qSZ3OWKDLt7Ui7w"
+TOKEN = "OTU0MzIzODA0NDUxMTMxNDQy.GY1145.vSpktJRAef2-unRFdQI4UzmcK8H1mwwq3RhRX4"
 
+Db()
 bot = Client(
     command_prefix='$'
 )
