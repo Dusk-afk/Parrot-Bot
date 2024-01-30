@@ -14,7 +14,8 @@ from services.FFmpegPCMAudioGTTS import FFmpegPCMAudioGTTS
 from services.audio_service import AudioService
 from services.db import Db 
 
-guild_ids = [1063893968418504764]
+guild_ids = None
+# guild_ids = [1063893968418504764]
 
 class LanguageSelectMenu(View):
     @select(placeholder=f"Select the language", options=[
@@ -56,11 +57,11 @@ class ParrotCog(Cog):
             print(e)
             await ctx.respond("Looks like I'm already in a voice channel.\nIf not then try again after a minute.")
     
-    @slash_command(name="test", description="For testing purpose")
+    @slash_command(name="test", description="For testing purpose", guild_ids=guild_ids)
     async def test(self, ctx: ApplicationContext):
         await ctx.respond("Yes, I'm alive")
     
-    @slash_command(name="stop", description="Disconnects Parrot from voice channel")
+    @slash_command(name="stop", description="Disconnects Parrot from voice channel", guild_ids=guild_ids)
     async def stop(self, ctx: ApplicationContext):
         try:
             await ctx.voice_client.disconnect()
@@ -68,7 +69,7 @@ class ParrotCog(Cog):
         except Exception as e:
             print(e)
 
-    @slash_command(name="config", description="This command allows you to manage settings for Parrot")
+    @slash_command(name="config", description="This command allows you to manage settings for Parrot", guild_ids=guild_ids)
     async def config(self, ctx: ApplicationContext):
         if not ctx.author.guild_permissions.administrator:
             await ctx.respond("You are not authorized to use this command", ephemeral = True)
@@ -134,7 +135,7 @@ class ParrotCog(Cog):
     def isSayDisabled(self, guild_id):
         return not Db().of(guild_id).is_say_enabled()
     
-    @slash_command(name="hello", description="Test if the parrot can speak")
+    @slash_command(name="hello", description="Test if the parrot can speak", guild_ids=guild_ids)
     async def hello(self, ctx: ApplicationContext):
         for vc in self.bot.voice_clients:
             vc: VoiceClient = vc
@@ -160,7 +161,7 @@ class ParrotCog(Cog):
 
         AudioService.play_tts(vc, script, lang)
 
-    @slash_command(name="say", description="Parrot will repeat your message")
+    @slash_command(name="say", description="Parrot will repeat your message", guild_ids=guild_ids)
     async def say(self, ctx: ApplicationContext, text: str):
         if self.isSayDisabled(ctx.guild_id):
             await ctx.respond("Say is currently disabled. To enable it you can ask the admin.", ephemeral = True)
@@ -180,7 +181,7 @@ class ParrotCog(Cog):
 
         await ctx.respond("I am not connected to your voice channel", ephemeral = True)
     
-    @slash_command(name="shutup", description="Parrot will shutup")
+    @slash_command(name="shutup", description="Parrot will shutup", guild_ids=guild_ids)
     async def shutup(self, ctx: ApplicationContext):
         for vc in self.bot.voice_clients:
             vc: VoiceClient = vc
@@ -198,7 +199,7 @@ class ParrotCog(Cog):
     def getLanguage(self, guild_id):
         return Db().of(guild_id).get_language()
     
-    @slash_command(name="help", description="Shows a list of commands that you can use for Parrot")
+    @slash_command(name="help", description="Shows a list of commands that you can use for Parrot", guild_ids=guild_ids)
     async def help(self, ctx: ApplicationContext):
         script = (
             "/config: This command allows you to manage settings for Parrot\n"
