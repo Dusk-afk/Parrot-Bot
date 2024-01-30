@@ -4,3 +4,4 @@
 /pycord/
 /venv/
 db.json
+.env
