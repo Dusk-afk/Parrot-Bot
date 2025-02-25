@@ -1,0 +1,10 @@
+version: '3'
+services:
+  bot:
+    build: .
+    container_name: parrot-bot
+    restart: unless-stopped
+    volumes:
+      - .:/bot
+    env_file:
+      - .env

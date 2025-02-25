@@ -108,7 +108,7 @@ class ParrotCog(Cog):
 
         currently_say_disabled = self.isSayDisabled(interaction.guild_id)
 
-        Db().of(interaction.guild_id).set_say_enabled(not currently_say_disabled)
+        Db().of(interaction.guild_id).set_say_enabled(currently_say_disabled)
 
         lang_btn = Button(
             label="Language",
