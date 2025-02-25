@@ -40,6 +40,9 @@ class Db:
         self.save_db()
     
     def of(self, guild_id: str | int) -> Config:
+        if guild_id not in self._db:
+            self.add_guild(guild_id)
+
         return self._db[str(guild_id)]
 
 class Config:
